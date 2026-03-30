@@ -1,0 +1,153 @@
+import api from "./axios";
+
+// Auth
+export const authApi = {
+  login: (data) => api.post("/auth/login", data),
+  register: (data) => api.post("/auth/register", data),
+};
+
+// Users
+export const userApi = {
+  getAll: () => api.get("/users"),
+  getByRole: (role) => api.get(`/users/role/${role}`),
+  getById: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post("/users", data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+  getMe: () => api.get("/users/me"),
+  updateProfile: (data) => api.patch("/users/me", data),
+  deleteAccount: () => api.delete("/users/me"),
+};
+
+// Properties
+export const propertyApi = {
+  getAll: (params) => api.get("/properties", { params }),
+  getById: (id) => api.get(`/properties/${id}`),
+  getByOwner: (ownerId) => api.get(`/properties/owner/${ownerId}`),
+  create: (data) => api.post("/properties", data),
+  update: (id, data) => api.put(`/properties/${id}`, data),
+  updateStatus: (id, status) =>
+    api.patch(`/properties/${id}/status`, null, { params: { status } }),
+  delete: (id) => api.delete(`/properties/${id}`),
+};
+
+// Property Images
+export const propertyImageApi = {
+  getImages: (propertyId) => api.get(`/properties/${propertyId}/images`),
+  addImage: (propertyId, data) =>
+    api.post(`/properties/${propertyId}/images`, data),
+  replaceImages: (propertyId, data) =>
+    api.put(`/properties/${propertyId}/images`, data),
+  deleteImage: (propertyId, imageId) =>
+    api.delete(`/properties/${propertyId}/images/${imageId}`),
+};
+
+// Land Blocks
+export const landBlockApi = {
+  getAll: (propertyId) => api.get(`/properties/${propertyId}/blocks`),
+  add: (propertyId, data) => api.post(`/properties/${propertyId}/blocks`, data),
+  bulkCreate: (propertyId, data) =>
+    api.post(`/properties/${propertyId}/blocks/bulk`, data),
+  update: (blockId, data) => api.put(`/blocks/${blockId}`, data),
+  updateStatus: (blockId, data) => api.patch(`/blocks/${blockId}/status`, data),
+  delete: (blockId) => api.delete(`/blocks/${blockId}`),
+};
+
+// Apartment Units
+export const apartmentUnitApi = {
+  getAll: (propertyId) => api.get(`/properties/${propertyId}/units`),
+  add: (propertyId, data) => api.post(`/properties/${propertyId}/units`, data),
+  bulkCreate: (propertyId, data) =>
+    api.post(`/properties/${propertyId}/units/bulk`, data),
+  update: (unitId, data) => api.put(`/units/${unitId}`, data),
+  updateStatus: (unitId, data) => api.patch(`/units/${unitId}/status`, data),
+  delete: (unitId) => api.delete(`/units/${unitId}`),
+};
+
+// Deals
+export const dealApi = {
+  getAll: (params) => api.get("/deals", { params }),
+  getById: (id) => api.get(`/deals/${id}`),
+  getByBuyer: (id) => api.get(`/deals/buyer/${id}`),
+  getBySeller: (id) => api.get(`/deals/seller/${id}`),
+  getByProperty: (id) => api.get(`/deals/property/${id}`),
+  create: (data) => api.post("/deals", data),
+  update: (id, data) => api.put(`/deals/${id}`, data),
+  delete: (id) => api.delete(`/deals/${id}`),
+  reply: (id, data) => api.patch(`/deals/${id}/reply`, data),
+};
+
+// Visits
+export const visitApi = {
+  getAll: () => api.get("/visits"),
+  getById: (id) => api.get(`/visits/${id}`),
+  getByBuyer: (id) => api.get(`/visits/buyer/${id}`),
+  create: (data) => api.post("/visits", data),
+  delete: (id) => api.delete(`/visits/${id}`),
+  approve: (id, data) => api.patch(`/visits/${id}/approve`, data || {}),
+  reject: (id, data) => api.patch(`/visits/${id}/reject`, data || {}),
+};
+
+// Documents
+export const documentApi = {
+  getAll: () => api.get("/documents"),
+  getById: (id) => api.get(`/documents/${id}`),
+  getByProperty: (propertyId) => api.get(`/documents/property/${propertyId}`),
+  getByDeal: (id) => api.get(`/documents/deal/${id}`),
+  create: (documentData, file) => {
+    const formData = new FormData();
+    formData.append("document", JSON.stringify(documentData));
+    if (file) formData.append("file", file);
+    return api.post("/documents", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  update: (id, data) => api.put(`/documents/${id}`, data),
+  delete: (id) => api.delete(`/documents/${id}`),
+  downloadFile: async (id, fileName) => {
+    const response = await api.get(`/documents/${id}/download`, {
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName || `document-${id}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+};
+
+// Profits
+export const profitApi = {
+  getAll: () => api.get("/profits"),
+  getById: (id) => api.get(`/profits/${id}`),
+  getSummary: () => api.get("/profits/summary"),
+  getByDeal: (id) => api.get(`/profits/deal/${id}`),
+  getByProperty: (id) => api.get(`/profits/property/${id}`),
+  create: (data) => api.post("/profits", data),
+  update: (id, data) => api.put(`/profits/${id}`, data),
+  delete: (id) => api.delete(`/profits/${id}`),
+};
+
+// News & Events
+// GET endpoints are public (no auth needed — email links work without login)
+// POST / PUT / DELETE require ADMIN role
+// Images are stored as base64 strings inside the imageUrl field
+export const newsEventApi = {
+  getAll: (type) => api.get("/news-events", { params: type ? { type } : {} }),
+  getById: (id) => api.get(`/news-events/${id}`),
+  create: (data) => api.post("/news-events", data),
+  update: (id, data) => api.put(`/news-events/${id}`, data),
+  delete: (id) => api.delete(`/news-events/${id}`),
+  // Multipart upload alternative (if backend supports it)
+  createWithFile: (data, file) => {
+    const formData = new FormData();
+    formData.append("news", JSON.stringify(data));
+    if (file) formData.append("image", file);
+    return api.post("/news-events/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+};
